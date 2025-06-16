@@ -1,0 +1,56 @@
+name: Sync and Filter Vault Content
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  # Runs the workflow on a schedule (e.g., every 6 hours)
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the public Quartz repository (which contains this workflow and the script)
+      - name: Checkout Public Repo
+        uses: actions/checkout@v4
+        with:
+          # The token is needed to push changes back to the repository
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. Check out the private Vault repository into a 'private_vault' directory
+      - name: Checkout Private Vault
+        uses: actions/checkout@v4
+        with:
+          repository: finn-e/my-obsidian-repo
+          token: ${{ secrets.VAULT_PAT }} # Uses the PAT you stored as a secret
+          path: 'private_vault'
+
+      # 3. Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # 4. Install Python dependencies (the frontmatter library)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-frontmatter
+
+      # 5. Run the filtering script
+      - name: Filter and copy published files
+        run: python scripts/filter_and_copy.py
+
+      # 6. Commit and push the filtered changes to the public repo
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add content/
+          if git diff --staged --quiet; then
+            echo "No changes to commit. Content is up to date."
+          else
+            git commit -m "Sync: Update content from vault (filtered)"
+            git push
+          fi
