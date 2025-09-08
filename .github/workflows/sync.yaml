@@ -13,14 +13,14 @@ jobs:
     steps:
       # 1. Check out the public Quartz repository (which contains this workflow and the script)
       - name: Checkout Public Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # The token is needed to push changes back to the repository
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # 2. Check out the private Vault repository into a 'private_vault' directory
       - name: Checkout Private Vault
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: finn-e/my-obsidian-repo
           token: ${{ secrets.VAULT_PAT }} # Uses the PAT you stored as a secret
@@ -28,7 +28,7 @@ jobs:
 
       # 3. Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
